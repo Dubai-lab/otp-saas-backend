@@ -24,6 +24,31 @@ export class Template {
   @Column({ type: 'text' })
   body: string; // HTML content
 
+  @Column({ type: 'json', nullable: true })
+  styles?: {
+    header?: {
+      backgroundColor?: string;
+      textColor?: string;
+      fontSize?: string;
+      fontFamily?: string;
+      borderRadius?: string;
+      borderColor?: string;
+      borderWidth?: string;
+    };
+    body?: {
+      backgroundColor?: string;
+      textColor?: string;
+      fontSize?: string;
+      fontFamily?: string;
+    };
+    footer?: {
+      backgroundColor?: string;
+      textColor?: string;
+      fontSize?: string;
+      fontFamily?: string;
+    };
+  };
+
   @CreateDateColumn()
   createdAt: Date;
 }

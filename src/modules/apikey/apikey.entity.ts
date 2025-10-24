@@ -7,6 +7,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { User } from '../users/user.entity';
+import { SMTPConfig } from '../smtp-config/smtp.entity';
 
 @Entity('api_keys')
 export class ApiKey {
@@ -15,6 +16,9 @@ export class ApiKey {
 
   @ManyToOne(() => User, (user) => user.apiKeys, { onDelete: 'CASCADE' })
   user: User;
+
+  @ManyToOne(() => SMTPConfig, { onDelete: 'CASCADE' })
+  smtpConfig: SMTPConfig;
 
   @Column({ unique: true })
   keyHash: string;

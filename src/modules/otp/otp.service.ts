@@ -5,6 +5,7 @@ import { TemplateService } from '../templates/template.service';
 import * as nodemailer from 'nodemailer';
 import { decryptSecret } from '../../common/utils/crypto.util';
 import { SendOtpDto } from './dto/send-otp.dto';
+import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { LogService } from '../logs/log.service';
 
 @Injectable()
@@ -21,7 +22,7 @@ export class OTPService {
   }
 
   async send(dto: SendOtpDto) {
-    const user = await this.apiKeyService.validate(dto.apiKey);
+    const user = await this.apiKeyService.validateById(dto.apiKeyId);
     if (!user) throw new BadRequestException('Invalid API Key');
 
     // Select SMTP config
@@ -49,14 +50,12 @@ export class OTPService {
       secure: fullSmtp.port === 465,
       auth: {
         user: fullSmtp.email,
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         pass: decryptSecret(fullSmtp.passwordEncrypted), // ✅ correct field
       },
     });
 
     // Create initial "pending" log
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    this.logService.create({
+    void this.logService.create({
       user,
       recipient: dto.recipient,
       otp,
@@ -75,9 +74,7 @@ export class OTPService {
         subject: template.subject,
         html,
       });
-
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-      this.logService.create({
+      void this.logService.create({
         user,
         recipient: dto.recipient,
         otp,
@@ -90,7 +87,6 @@ export class OTPService {
 
       return { success: true, message: 'OTP sent', otp };
     } catch (e: any) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       await this.logService.create({
         user,
         recipient: dto.recipient,
@@ -106,5 +102,22 @@ export class OTPService {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       throw new BadRequestException('OTP send failed: ' + e.message);
     }
+  }
+
+  async verify(dto: VerifyOtpDto) {
+    const user = await this.apiKeyService.validateById(dto.apiKeyId);
+    if (!user) throw new BadRequestException('Invalid API Key');
+
+    // Find the most recent OTP log for this user with the provided OTP
+    const recentLog = await this.logService.findRecentByOtp(user.id, dto.otp);
+
+    if (!recentLog) {
+      return { success: false, message: 'Invalid OTP' };
+    }
+
+    // Mark as verified
+    await this.logService.updateStatus(recentLog.id, 'verified');
+
+    return { success: true, message: 'OTP verified successfully' };
   }
 }

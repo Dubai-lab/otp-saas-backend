@@ -15,5 +15,5 @@ export class SendOtpDto {
   @IsString()
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   @IsNotEmpty()
-  apiKey: string;
+  apiKeyId: string;
 }

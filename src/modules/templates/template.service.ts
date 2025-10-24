@@ -22,6 +22,7 @@ export class TemplateService {
       name: dto.name,
       subject: dto.subject,
       body: dto.body,
+      styles: dto.styles,
     });
 
     return this.repo.save(template);
