@@ -6,6 +6,7 @@ import { SendLog } from '../logs/log.entity';
 import { ApiKeyModule } from '../apikey/apikey.module';
 import { SMTPModule } from '../smtp-config/smtp.module';
 import { TemplateModule } from '../templates/template.module';
+import { LogModule } from '../logs/log.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { TemplateModule } from '../templates/template.module';
     ApiKeyModule,
     SMTPModule,
     TemplateModule,
+    LogModule,
   ],
   controllers: [OTPController],
   providers: [OTPService],

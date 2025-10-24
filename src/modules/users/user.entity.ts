@@ -9,8 +9,7 @@ import {
 import { SMTPConfig } from '../smtp-config/smtp.entity';
 import { Template } from '../templates/template.entity';
 import { ApiKey } from '../apikey/apikey.entity';
-import { EmailLog } from '../logs/log.entity';
-import { OTP } from '../otp/otp.entity';
+import { SendLog } from '../logs/log.entity';
 
 @Entity('users')
 export class User {
@@ -26,7 +25,7 @@ export class User {
   @Column()
   password: string;
 
-  @Column({ default: 'user' })
+  @Column({ type: 'varchar', default: 'user' })
   role: 'user' | 'admin';
 
   @OneToMany(() => SMTPConfig, (smtp) => smtp.user)
@@ -38,12 +37,8 @@ export class User {
   @OneToMany(() => ApiKey, (key) => key.user)
   apiKeys: ApiKey[];
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-  @OneToMany(() => EmailLog, (log) => log.user)
-  emailLogs: EmailLog[];
-
-  @OneToMany(() => OTP, (otp) => otp.user)
-  otps: OTP[];
+  @OneToMany(() => SendLog, (log) => log.user)
+  logs: SendLog[];
 
   @CreateDateColumn()
   createdAt: Date;

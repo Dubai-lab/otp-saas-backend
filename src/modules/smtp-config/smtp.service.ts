@@ -24,12 +24,16 @@ export class SMTPService {
     });
 
     const patch = {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       name: dto.name ?? cfg?.name,
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       host: dto.host ?? cfg?.host,
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       port: dto.port ?? cfg?.port,
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       email: dto.email ?? cfg?.email,
       passwordEncrypted: dto.password
         ? encryptSecret(dto.password)
@@ -67,9 +71,7 @@ export class SMTPService {
       where: { id, user: { id: userId } },
     });
     if (!cfg) throw new NotFoundException('SMTP config not found');
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { passwordEncrypted, ...rest } = cfg;
-    return { ...rest, password: '********' };
+    return cfg;
   }
 
   async remove(userId: string, id: string) {

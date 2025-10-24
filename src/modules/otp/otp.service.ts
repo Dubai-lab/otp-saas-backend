@@ -1,13 +1,11 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { SendLog } from '../logs/log.entity';
 import { ApiKeyService } from '../apikey/apikey.service';
 import { SMTPService } from '../smtp-config/smtp.service';
 import { TemplateService } from '../templates/template.service';
 import * as nodemailer from 'nodemailer';
 import { decryptSecret } from '../../common/utils/crypto.util';
 import { SendOtpDto } from './dto/send-otp.dto';
+import { LogService } from '../logs/log.service';
 
 @Injectable()
 export class OTPService {
@@ -15,9 +13,7 @@ export class OTPService {
     private readonly apiKeyService: ApiKeyService,
     private readonly smtpService: SMTPService,
     private readonly templateService: TemplateService,
-
-    @InjectRepository(SendLog)
-    private readonly repo: Repository<SendLog>,
+    private readonly logService: LogService,
   ) {}
 
   generateOtp(): string {
@@ -28,12 +24,17 @@ export class OTPService {
     const user = await this.apiKeyService.validate(dto.apiKey);
     if (!user) throw new BadRequestException('Invalid API Key');
 
+    // Select SMTP config
     const smtps = await this.smtpService.getAllForUser(user.id);
-    if (!smtps.length)
+    if (!smtps.length) {
       throw new BadRequestException('No SMTP configuration found for user');
+    }
+    const smtp = smtps[0];
 
-    const smtp = smtps[0]; // first config for now — later allow selection
+    // Get full SMTP config with password
+    const fullSmtp = await this.smtpService.getOneById(user.id, smtp.id);
 
+    // Select Template
     const templates = await this.templateService.findAll(user.id);
     const template = templates.find((t) => t.name === dto.templateName);
     if (!template) throw new BadRequestException('Template not found');
@@ -43,42 +44,65 @@ export class OTPService {
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     const transporter = nodemailer.createTransport({
-      host: smtp.host,
-      port: smtp.port,
-      secure: smtp.port === 465,
+      host: fullSmtp.host,
+      port: fullSmtp.port,
+      secure: fullSmtp.port === 465,
       auth: {
-        user: smtp.email,
-
-        pass: decryptSecret(smtp.password),
+        user: fullSmtp.email,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        pass: decryptSecret(fullSmtp.passwordEncrypted), // ✅ correct field
       },
     });
 
-    const log = this.repo.create({
+    // Create initial "pending" log
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+    this.logService.create({
       user,
       recipient: dto.recipient,
       otp,
+      subject: template.subject,
+      provider: fullSmtp.host,
+      type: 'otp',
       status: 'pending',
+      error: undefined,
     });
-    await this.repo.save(log);
 
     try {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
       await transporter.sendMail({
-        from: smtp.email,
+        from: fullSmtp.email,
         to: dto.recipient,
         subject: template.subject,
         html,
       });
 
-      log.status = 'sent';
-      await this.repo.save(log);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+      this.logService.create({
+        user,
+        recipient: dto.recipient,
+        otp,
+        subject: template.subject,
+        provider: fullSmtp.host,
+        type: 'otp',
+        status: 'sent',
+        error: undefined,
+      });
 
-      return { success: true, message: 'OTP sent', otp }; // ✅ backend shows OTP only for debug/testing
+      return { success: true, message: 'OTP sent', otp };
     } catch (e: any) {
-      log.status = 'failed';
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-      log.error = e.message;
-      await this.repo.save(log);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+      await this.logService.create({
+        user,
+        recipient: dto.recipient,
+        otp,
+        subject: template.subject,
+        provider: fullSmtp.host,
+        type: 'otp',
+        status: 'failed',
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+        error: e.message,
+      });
+
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       throw new BadRequestException('OTP send failed: ' + e.message);
     }

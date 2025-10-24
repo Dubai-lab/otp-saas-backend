@@ -3,8 +3,8 @@ import {
   PrimaryGeneratedColumn,
   Column,
   ManyToOne,
-  UpdateDateColumn,
   CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { User } from '../users/user.entity';
 
@@ -13,7 +13,7 @@ export class SMTPConfig {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => User, (user) => user.smtpConfigs, { onDelete: 'CASCADE' })
+  @ManyToOne(() => User, { onDelete: 'CASCADE' })
   user: User;
 
   @Column()
@@ -28,8 +28,8 @@ export class SMTPConfig {
   @Column()
   email: string;
 
-  @Column()
-  passwordEncrypted: string;
+  @Column({ type: 'text' })
+  passwordEncrypted: string; // ✅ final correct field
 
   @CreateDateColumn()
   createdAt: Date;
