@@ -35,4 +35,12 @@ export class UsersService {
     user.role = role as 'user' | 'admin';
     return this.repo.save(user);
   }
+
+  async update(
+    userId: string,
+    data: Partial<Pick<User, 'password' | 'fullName' | 'email'>>,
+  ) {
+    await this.repo.update(userId, data);
+    return this.findById(userId);
+  }
 }

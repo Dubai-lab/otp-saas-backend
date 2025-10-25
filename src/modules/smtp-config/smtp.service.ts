@@ -83,4 +83,16 @@ export class SMTPService {
     await this.repo.remove(cfg);
     return { message: 'SMTP config removed' };
   }
+
+  async getAllForAdmin() {
+    const list = await this.repo.find({
+      relations: ['user'],
+      order: { updatedAt: 'DESC' },
+    });
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    return list.map(({ passwordEncrypted, ...rest }) => ({
+      ...rest,
+      password: '********',
+    }));
+  }
 }

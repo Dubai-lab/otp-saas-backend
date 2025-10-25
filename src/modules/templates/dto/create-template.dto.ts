@@ -8,7 +8,13 @@ export class CreateTemplateDto {
   subject: string;
 
   @IsNotEmpty()
-  body: string; // HTML content with placeholders like {{OTP}}
+  headerText: string;
+
+  @IsNotEmpty()
+  bodyText: string; // Text content with {{OTP}} placeholder
+
+  @IsNotEmpty()
+  footerText: string;
 
   @IsOptional()
   @IsObject()
@@ -27,6 +33,15 @@ export class CreateTemplateDto {
       textColor?: string;
       fontSize?: string;
       fontFamily?: string;
+    };
+    otp?: {
+      backgroundColor?: string;
+      textColor?: string;
+      fontSize?: string;
+      padding?: string;
+      borderRadius?: string;
+      borderColor?: string;
+      borderWidth?: string;
     };
     footer?: {
       backgroundColor?: string;

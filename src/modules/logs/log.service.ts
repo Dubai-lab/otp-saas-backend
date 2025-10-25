@@ -102,6 +102,16 @@ export class LogService {
     });
   }
 
+  async findRecentByOtpForPasswordReset(otp: string) {
+    return this.repo.findOne({
+      where: {
+        otp,
+        status: 'sent',
+      },
+      order: { createdAt: 'DESC' },
+    });
+  }
+
   async updateStatus(
     id: string,
     status: 'pending' | 'sent' | 'failed' | 'verified',

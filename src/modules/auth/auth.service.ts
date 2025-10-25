@@ -8,12 +8,16 @@ import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/user.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { OTPService } from '../otp/otp.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly usersService: UsersService,
     private readonly jwt: JwtService,
+    private readonly otpService: OTPService,
   ) {}
 
   async register(dto: RegisterDto) {
@@ -55,6 +59,58 @@ export class AuthService {
         fullName: user.fullName,
         role: user.role,
       },
+    };
+  }
+
+  async forgotPassword(dto: ForgotPasswordDto) {
+    const user = await this.usersService.findByEmail(dto.email);
+    if (!user) throw new BadRequestException('User not found');
+
+    // Use the hardcoded API key and template for password reset
+    const apiKeyId = 'c50eb157-d5df-4eb6-a43a-a8b79929c0e7';
+    const templateName = 'otp-email';
+
+    await this.otpService.send({
+      apiKeyId,
+      recipient: dto.email,
+      templateName,
+    });
+
+    return {
+      message: 'Password reset OTP sent to your email',
+      success: true,
+    };
+  }
+
+  async resetPassword(dto: ResetPasswordDto) {
+    // Find the most recent OTP log for password reset (without user filter for forgot password)
+    const recentLog = await this.otpService.findRecentByOtpForPasswordReset(
+      dto.otp,
+    );
+    if (!recentLog) {
+      throw new BadRequestException('Invalid or expired OTP');
+    }
+
+    // Get user by email from the log
+    const user = await this.usersService.findByEmail(recentLog.recipient);
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+
+    // Hash new password
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    const hash = await bcrypt.hash(dto.newPassword, 10);
+
+    // Update user password
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    await this.usersService.update(user.id, { password: hash });
+
+    // Mark OTP as verified
+    await this.otpService.updateStatus(recentLog.id, 'verified');
+
+    return {
+      message: 'Password reset successfully',
+      success: true,
     };
   }
 }

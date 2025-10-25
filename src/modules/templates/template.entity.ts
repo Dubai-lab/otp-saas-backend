@@ -22,7 +22,13 @@ export class Template {
   subject: string;
 
   @Column({ type: 'text' })
-  body: string; // HTML content
+  headerText: string;
+
+  @Column({ type: 'text' })
+  bodyText: string; // Text content with {{OTP}} placeholder
+
+  @Column({ type: 'text' })
+  footerText: string;
 
   @Column({ type: 'json', nullable: true })
   styles?: {
@@ -40,6 +46,15 @@ export class Template {
       textColor?: string;
       fontSize?: string;
       fontFamily?: string;
+    };
+    otp?: {
+      backgroundColor?: string;
+      textColor?: string;
+      fontSize?: string;
+      padding?: string;
+      borderRadius?: string;
+      borderColor?: string;
+      borderWidth?: string;
     };
     footer?: {
       backgroundColor?: string;

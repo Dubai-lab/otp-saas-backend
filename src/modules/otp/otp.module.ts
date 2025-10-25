@@ -18,5 +18,6 @@ import { LogModule } from '../logs/log.module';
   ],
   controllers: [OTPController],
   providers: [OTPService],
+  exports: [OTPService],
 })
 export class OTPModule {}

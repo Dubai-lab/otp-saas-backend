@@ -21,7 +21,9 @@ export class TemplateService {
       user,
       name: dto.name,
       subject: dto.subject,
-      body: dto.body,
+      headerText: dto.headerText,
+      bodyText: dto.bodyText,
+      footerText: dto.footerText,
       styles: dto.styles,
     });
 
@@ -53,5 +55,12 @@ export class TemplateService {
 
     await this.repo.remove(temp);
     return { message: 'Template removed' };
+  }
+
+  async findAllForAdmin() {
+    return this.repo.find({
+      relations: ['user'],
+      order: { createdAt: 'DESC' },
+    });
   }
 }

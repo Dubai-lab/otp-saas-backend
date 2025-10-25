@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Param, Patch, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -24,5 +33,75 @@ export class AdminController {
   @Get('logs')
   getLogs() {
     return this.service.findAllLogs();
+  }
+
+  @Get('otp-logs')
+  getOtpLogs() {
+    return this.service.findAllLogs();
+  }
+
+  @Get('smtp')
+  getAllSMTPConfigs() {
+    return this.service.findAllSMTPConfigs();
+  }
+
+  @Post('smtp')
+  createSMTPConfig(@Body() dto: any) {
+    return this.service.createSMTPConfig(dto);
+  }
+
+  @Patch('smtp/:id')
+  updateSMTPConfig(@Param('id') id: string, @Body() dto: any) {
+    return this.service.updateSMTPConfig(id, dto);
+  }
+
+  @Delete('smtp/:id')
+  deleteSMTPConfig(@Param('id') id: string) {
+    return this.service.deleteSMTPConfig(id);
+  }
+
+  @Get('apikeys')
+  getAllApiKeys() {
+    return this.service.findAllApiKeys();
+  }
+
+  @Post('apikeys')
+  createApiKey(@Body() dto: any) {
+    return this.service.createApiKey(dto);
+  }
+
+  @Delete('apikeys/:id')
+  deleteApiKey(@Param('id') id: string) {
+    return this.service.deleteApiKey(id);
+  }
+
+  @Get('templates')
+  getAllTemplates() {
+    return this.service.findAllTemplates();
+  }
+
+  @Post('templates')
+  createTemplate(@Body() dto: any) {
+    return this.service.createTemplate(dto);
+  }
+
+  @Patch('templates/:id')
+  updateTemplate(@Param('id') id: string, @Body() dto: any) {
+    return this.service.updateTemplate(id, dto);
+  }
+
+  @Delete('templates/:id')
+  deleteTemplate(@Param('id') id: string) {
+    return this.service.deleteTemplate(id);
+  }
+
+  @Get('stats')
+  getSystemStats() {
+    return this.service.getSystemStats();
+  }
+
+  @Post('cleanup')
+  cleanupSystem() {
+    return this.service.cleanupSystem();
   }
 }

@@ -8,6 +8,44 @@ import { SendOtpDto } from './dto/send-otp.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { LogService } from '../logs/log.service';
 
+type TemplateStyles = {
+  header?: {
+    backgroundColor?: string;
+    textColor?: string;
+    fontSize?: string;
+    fontFamily?: string;
+    borderRadius?: string;
+    borderColor?: string;
+    borderWidth?: string;
+  };
+  body?: {
+    backgroundColor?: string;
+    textColor?: string;
+    fontSize?: string;
+    fontFamily?: string;
+  };
+  otp?: {
+    backgroundColor?: string;
+    textColor?: string;
+    fontSize?: string;
+    padding?: string;
+    borderRadius?: string;
+    borderColor?: string;
+    borderWidth?: string;
+  };
+  footer?: {
+    backgroundColor?: string;
+    textColor?: string;
+    fontSize?: string;
+    fontFamily?: string;
+  };
+};
+
+type TemplateWithStyles = {
+  subject: string;
+  styles?: TemplateStyles;
+};
+
 @Injectable()
 export class OTPService {
   constructor(
@@ -41,7 +79,7 @@ export class OTPService {
     if (!template) throw new BadRequestException('Template not found');
 
     const otp = this.generateOtp();
-    const html = template.body.replace('{{OTP}}', otp);
+    const html = this.generateEmailHtml(template, otp);
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     const transporter = nodemailer.createTransport({
@@ -119,5 +157,78 @@ export class OTPService {
     await this.logService.updateStatus(recentLog.id, 'verified');
 
     return { success: true, message: 'OTP verified successfully' };
+  }
+
+  async findRecentByOtpForPasswordReset(otp: string) {
+    return this.logService.findRecentByOtpForPasswordReset(otp);
+  }
+
+  async updateStatus(
+    id: string,
+    status: 'pending' | 'sent' | 'failed' | 'verified',
+  ) {
+    return this.logService.updateStatus(id, status);
+  }
+
+  private generateEmailHtml(
+    template: TemplateWithStyles & {
+      styles?: TemplateStyles;
+      headerText: string;
+      bodyText: string;
+      footerText: string;
+    },
+    otp: string,
+  ): string {
+    const styles = template.styles || {};
+    const headerStyles = styles.header || {};
+    const bodyStyles = styles.body || {};
+    const otpStyles = styles.otp || {};
+    const footerStyles = styles.footer || {};
+
+    const bodyContent = template.bodyText.replace('{{OTP}}', otp);
+
+    return `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>${template.subject}</title>
+      </head>
+      <body style="margin: 0; padding: 0; font-family: ${bodyStyles.fontFamily || 'Arial, sans-serif'}; background-color: #f4f4f4;">
+        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f4f4f4;">
+          <tr>
+            <td align="center" style="padding: 20px;">
+              <table width="600" border="0" cellspacing="0" cellpadding="0" style="background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+                <!-- Header -->
+                <tr>
+                  <td style="background-color: ${headerStyles.backgroundColor || '#4F46E5'}; color: ${headerStyles.textColor || '#ffffff'}; font-size: ${headerStyles.fontSize || '24px'}; font-weight: 700; font-family: ${headerStyles.fontFamily || 'Arial, sans-serif'}; text-align: center; padding: 20px; border-radius: ${headerStyles.borderRadius || '8px 8px 0 0'}; border: ${headerStyles.borderWidth || '0px'} solid ${headerStyles.borderColor || '#000000'};">
+                    ${template.headerText}
+                  </td>
+                </tr>
+                <!-- Body -->
+                <tr>
+                  <td style="background-color: ${bodyStyles.backgroundColor || '#ffffff'}; color: ${bodyStyles.textColor || '#333333'}; font-size: ${bodyStyles.fontSize || '14px'}; font-family: ${bodyStyles.fontFamily || 'Arial, sans-serif'}; padding: 40px; text-align: left;">
+                    <p>${bodyContent}</p>
+                    <div style="text-align: center; margin: 20px 0;">
+                      <div style="display: inline-block; background-color: ${otpStyles.backgroundColor || '#F5F5F5'}; color: ${otpStyles.textColor || '#4F46E5'}; font-size: ${otpStyles.fontSize || '28px'}; font-weight: bold; padding: ${otpStyles.padding || '16px 20px'}; border-radius: ${otpStyles.borderRadius || '8px'}; border: ${otpStyles.borderWidth || '1px'} solid ${otpStyles.borderColor || '#ddd'};">
+                        ${otp}
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+                <!-- Footer -->
+                <tr>
+                  <td style="background-color: ${footerStyles.backgroundColor || '#F9FAFB'}; color: ${footerStyles.textColor || '#666666'}; font-size: ${footerStyles.fontSize || '12px'}; font-family: ${footerStyles.fontFamily || 'Arial, sans-serif'}; padding: 20px; text-align: center; border-radius: 0 0 8px 8px;">
+                    <p>${template.footerText}</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+      </html>
+    `;
   }
 }

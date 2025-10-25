@@ -3,9 +3,12 @@ import { AdminService } from './admin.service';
 import { AdminController } from './admin.controller';
 import { UsersModule } from '../users/user.module';
 import { LogModule } from '../logs/log.module';
+import { SMTPModule } from '../smtp-config/smtp.module';
+import { ApiKeyModule } from '../apikey/apikey.module';
+import { TemplateModule } from '../templates/template.module';
 
 @Module({
-  imports: [UsersModule, LogModule],
+  imports: [UsersModule, LogModule, SMTPModule, ApiKeyModule, TemplateModule],
   controllers: [AdminController],
   providers: [AdminService],
 })

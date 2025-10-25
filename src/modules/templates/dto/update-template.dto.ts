@@ -13,7 +13,15 @@ export class UpdateTemplateDto extends PartialType(CreateTemplateDto) {
 
   @IsOptional()
   @IsNotEmpty()
-  body?: string;
+  headerText?: string;
+
+  @IsOptional()
+  @IsNotEmpty()
+  bodyText?: string;
+
+  @IsOptional()
+  @IsNotEmpty()
+  footerText?: string;
 
   @IsOptional()
   @IsObject()
@@ -32,6 +40,15 @@ export class UpdateTemplateDto extends PartialType(CreateTemplateDto) {
       textColor?: string;
       fontSize?: string;
       fontFamily?: string;
+    };
+    otp?: {
+      backgroundColor?: string;
+      textColor?: string;
+      fontSize?: string;
+      padding?: string;
+      borderRadius?: string;
+      borderColor?: string;
+      borderWidth?: string;
     };
     footer?: {
       backgroundColor?: string;

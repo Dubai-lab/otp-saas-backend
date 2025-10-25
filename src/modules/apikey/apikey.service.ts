@@ -88,4 +88,21 @@ export class ApiKeyService {
     });
     return key?.user || null;
   }
+
+  async listForAdmin() {
+    const keys = await this.repo.find({
+      relations: ['smtpConfig', 'user'],
+      order: { createdAt: 'DESC' },
+      select: ['id', 'label', 'createdAt', 'updatedAt'], // don't return hash
+    });
+
+    return keys.map((key) => ({
+      id: key.id,
+      name: `${key.smtpConfig.name} API Key`,
+      createdAt: key.createdAt,
+      updatedAt: key.updatedAt,
+      user: key.user,
+      smtpConfig: key.smtpConfig,
+    }));
+  }
 }
