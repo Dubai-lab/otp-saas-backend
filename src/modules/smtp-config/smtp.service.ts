@@ -15,6 +15,19 @@ export class SMTPService {
     private readonly usersService: UsersService,
   ) {}
 
+  // Utility to provide safe nodemailer transport options
+  private getTransportOptions() {
+    const debug = process.env.SMTP_DEBUG === 'true';
+    return {
+      connectionTimeout: 10000,
+      socketTimeout: 10000,
+      greetingTimeout: 5000,
+      logger: debug,
+      debug,
+      // Do NOT include auth here; this method only returns common transport opts
+    } as const;
+  }
+
   async upsertForUser(userId: string, dto: CreateSmtpDto | UpdateSmtpDto) {
     const user = await this.usersService.findById(userId);
     if (!user) throw new NotFoundException('User not found');

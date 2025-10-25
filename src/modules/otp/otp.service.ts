@@ -81,6 +81,8 @@ export class OTPService {
     const otp = this.generateOtp();
     const html = this.generateEmailHtml(template, otp);
 
+    // Build nodemailer transporter with safe timeouts and optional debug
+    const debug = process.env.SMTP_DEBUG === 'true';
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     const transporter = nodemailer.createTransport({
       host: fullSmtp.host,
@@ -90,9 +92,11 @@ export class OTPService {
         user: fullSmtp.email,
         pass: decryptSecret(fullSmtp.passwordEncrypted), // ✅ correct field
       },
-      connectionTimeout: 60000, // 60 seconds
-      greetingTimeout: 30000, // 30 seconds
-      socketTimeout: 60000, // 60 seconds
+      connectionTimeout: 10000, // 10s fail-fast
+      greetingTimeout: 5000, // 5s
+      socketTimeout: 10000, // 10s
+      logger: debug,
+      debug,
     });
 
     // Create initial "pending" log

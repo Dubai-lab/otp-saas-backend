@@ -67,8 +67,8 @@ export class AuthService {
     if (!user) throw new BadRequestException('User not found');
 
     // Use the hardcoded API key and template for password reset
-    const apiKeyId = '941b410a-12df-43ce-af0e-633bf0731d4c';
-    const templateName = 'otp-code';
+    const apiKeyId = 'c50eb157-d5df-4eb6-a43a-a8b79929c0e7';
+    const templateName = 'otp-email';
 
     await this.otpService.send({
       apiKeyId,
