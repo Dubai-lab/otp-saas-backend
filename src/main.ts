@@ -20,6 +20,7 @@ async function bootstrap() {
         frontendOrigin,
         defaultDevOrigin,
         'http://localhost:3000',
+        'https://frontend-1jme.onrender.com', // Add your Render frontend URL
       ];
       if (allowed.includes(origin) || process.env.NODE_ENV !== 'production') {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
