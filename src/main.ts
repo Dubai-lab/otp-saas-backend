@@ -9,17 +9,19 @@ dotenv.config();
 async function bootstrap() {
   console.log('📌 Bootstrapping backend…');
 
-  // ✅ Ensure DB is ready + run pending migrations
-  await AppDataSource.initialize()
-    .then(() => {
-      console.log('✅ Database initialized');
-      return AppDataSource.runMigrations();
-    })
-    .then(() => console.log('✅ Migrations executed'))
-    .catch((err) =>
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      console.error('❌ Database init/migration error:', err?.message || err),
-    );
+  try {
+    // ✅ Initialize DB
+    await AppDataSource.initialize();
+    console.log('✅ Database initialized');
+
+    // ✅ Run all pending migrations
+    await AppDataSource.runMigrations();
+    console.log('✅ Migrations executed');
+  } catch (err) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    console.error('❌ Database init/migration error:', err?.message || err);
+    process.exit(1); // Stop server if DB fails
+  }
 
   const app = await NestFactory.create(AppModule);
 
@@ -44,7 +46,7 @@ async function bootstrap() {
   // ✅ DTO validation
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
-  // ✅ Simple health check endpoint
+  // ✅ Health check
   const httpAdapter = app.getHttpAdapter();
   httpAdapter.get('/health', (_req: unknown, res: any) => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
@@ -53,7 +55,6 @@ async function bootstrap() {
 
   const port = process.env.PORT || 5000;
   await app.listen(port, '0.0.0.0');
-
   console.log(`✅ Backend running at http://localhost:${port}`);
 }
 
