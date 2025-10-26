@@ -6,10 +6,9 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "build:render": "npm install && npx nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "node dist/main.js",
-    "build": "npx nest build",
+    "build": "nest build",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main.js",
@@ -24,6 +23,9 @@
     "migration:generate": "npm run typeorm -- -d src/data-source.ts migration:generate src/migrations/AutoMigration",
     "migration:run": "npm run typeorm -- -d dist/data-source.js migration:run",
     "migration:revert": "npm run typeorm -- -d dist/data-source.js migration:revert"
+  },
+  "engines": {
+    "node": "18.x"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
