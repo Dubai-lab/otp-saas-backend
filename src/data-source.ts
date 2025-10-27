@@ -1,7 +1,6 @@
 import 'reflect-metadata';
 import { DataSource } from 'typeorm';
 import * as dotenv from 'dotenv';
-
 dotenv.config();
 
 export const AppDataSource = new DataSource({
@@ -11,9 +10,12 @@ export const AppDataSource = new DataSource({
   username: process.env.DB_USERNAME,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_DATABASE,
-  entities: ['src/modules/**/*.entity.{ts,js}'],
-  migrations: ['src/migrations/*.{ts,js}'],
+  ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false, // ✅ Works for local & production
+
+  entities: ['dist/modules/**/*.entity.js'],
+  migrations: ['dist/migrations/*.js'],
+
   synchronize: false,
-  logging: true,
-  ssl: true,
+  migrationsRun: true,
+  logging: false,
 });
