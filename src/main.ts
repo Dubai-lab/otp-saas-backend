@@ -4,25 +4,19 @@ dotenv.config();
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+import { DataSource } from 'typeorm';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  const allowedOrigins = [
-    'https://otp-saas-frontend.onrender.com',
-    'http://localhost:5173',
-  ];
-
+  // ✅ Allow frontend on Render
   app.enableCors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
-        return callback(null, true);
-      }
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
-      return callback(new Error('Not allowed by CORS'), false);
-    },
-    methods: 'GET,POST,PUT,PATCH,DELETE',
+    origin: [
+      'http://localhost:5173',
+      'http://localhost:3000',
+      'https://otp-saas-frontend.onrender.com',
+      process.env.FRONTEND_ORIGIN,
+    ],
     credentials: true,
   });
 
@@ -34,14 +28,23 @@ async function bootstrap() {
     }),
   );
 
-  const httpAdapter = app.getHttpAdapter();
-  httpAdapter.get('/health', (req: any, res: any) => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-    res.status(200).json({ status: 'ok' });
+  // ✅ IMPORTANT: Run migrations ONCE to create tables
+  try {
+    const dataSource = app.get(DataSource);
+    await dataSource.runMigrations();
+    console.log('✅ Database migrations executed');
+  } catch (err) {
+    console.error('❌ Migration error:', err);
+  }
+
+  // ✅ Healthcheck for Koyeb
+  app.getHttpAdapter().get('/health', (_req, res) => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    return res.json({ status: 'ok' });
   });
 
   await app.listen(process.env.PORT || 5000, '0.0.0.0');
-  console.log(`🚀 Backend running on port ${process.env.PORT || 5000}`);
+  console.log(`🚀 Backend running @ ${process.env.PORT || 5000}`);
 }
 
-bootstrap();
+void bootstrap();
