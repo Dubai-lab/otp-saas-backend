@@ -2,25 +2,17 @@ import 'reflect-metadata';
 import { DataSource } from 'typeorm';
 import * as dotenv from 'dotenv';
 
-if (process.env.NODE_ENV !== 'production') {
-  dotenv.config();
-}
-
-const isProd = process.env.NODE_ENV === 'production';
+dotenv.config();
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
-  url: process.env.DATABASE_URL,
-  ssl: isProd ? { rejectUnauthorized: false } : false,
-
+  host: process.env.DB_HOST,
+  port: parseInt(process.env.DB_PORT || '5432', 10),
+  username: process.env.DB_USERNAME,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_DATABASE,
+  entities: ['src/modules/**/*.entity.{ts,js}'],
+  migrations: ['src/migrations/*.{ts,js}'],
   synchronize: false,
-  migrationsRun: true,
-
-  entities: isProd
-    ? ['dist/modules/**/*.entity.js']
-    : ['src/modules/**/*.entity.ts'],
-
-  migrations: isProd ? ['dist/migrations/*.js'] : ['src/migrations/*.ts'],
-
-  logging: false,
+  logging: true,
 });
