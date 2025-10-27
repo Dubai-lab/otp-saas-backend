@@ -4,7 +4,6 @@ dotenv.config();
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
-import { DataSource } from 'typeorm';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -29,14 +28,6 @@ async function bootstrap() {
   );
 
   // ✅ IMPORTANT: Run migrations ONCE to create tables
-  try {
-    const dataSource = app.get(DataSource);
-    await dataSource.runMigrations();
-    console.log('✅ Database migrations executed');
-  } catch (err) {
-    console.error('❌ Migration error:', err);
-  }
-
   // ✅ Healthcheck for Koyeb
   app.getHttpAdapter().get('/health', (_req, res) => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
