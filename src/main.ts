@@ -8,27 +8,21 @@ import { ValidationPipe } from '@nestjs/common';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // CORS: allow dev origin and configurable production origin
-  const defaultDevOrigin = 'http://localhost:5173';
-  const frontendOrigin = process.env.FRONTEND_ORIGIN || defaultDevOrigin;
+  const allowedOrigins = [
+    'https://otp-saas-frontend.onrender.com',
+    'http://localhost:5173',
+  ];
+
   app.enableCors({
     origin: (origin, callback) => {
-      // allow requests with no origin (mobile apps, curl)
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
-      if (!origin) return callback(null, true);
-      const allowed = [
-        frontendOrigin,
-        defaultDevOrigin,
-        'http://localhost:3000',
-        'https://frontend-1jme.onrender.com', // Add your Render frontend URL
-      ];
-      if (allowed.includes(origin) || process.env.NODE_ENV !== 'production') {
+      if (!origin || allowedOrigins.includes(origin)) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
         return callback(null, true);
       }
       // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
       return callback(new Error('Not allowed by CORS'), false);
     },
+    methods: 'GET,POST,PUT,PATCH,DELETE',
     credentials: true,
   });
 
@@ -40,18 +34,14 @@ async function bootstrap() {
     }),
   );
 
-  // Lightweight health endpoint
   const httpAdapter = app.getHttpAdapter();
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-  httpAdapter.get('/health', (_req: unknown, res: any) => {
+  httpAdapter.get('/health', (req: any, res: any) => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-    res.json({ status: 'ok' });
+    res.status(200).json({ status: 'ok' });
   });
 
   await app.listen(process.env.PORT || 5000, '0.0.0.0');
-  console.log(
-    `🚀 Server running on http://localhost:${process.env.PORT || 5000}`,
-  );
+  console.log(`🚀 Backend running on port ${process.env.PORT || 5000}`);
 }
 
-void bootstrap();
+bootstrap();
