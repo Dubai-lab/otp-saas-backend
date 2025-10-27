@@ -15,10 +15,10 @@ export const AppDataSource = new DataSource({
   password: process.env.DB_PASSWORD,
   database: process.env.DB_DATABASE,
 
-  ssl: true, // ✅ Force SSL in Render ALWAYS
+  ssl: true, // ✅ Render requires SSL always
   extra: {
     ssl: {
-      rejectUnauthorized: false, // ✅ Required by Render PostgreSQL
+      rejectUnauthorized: false, // ✅ Required for Render
     },
   },
 
