@@ -17,7 +17,7 @@ export const AppDataSource = new DataSource({
         database: process.env.DB_DATABASE,
       }),
 
-  ssl: isProd ? { rejectUnauthorized: false } : false,
+  ssl: isProd ? { rejectUnauthorized: false, ca: undefined } : false,
 
   synchronize: false,
   migrationsRun: true,
