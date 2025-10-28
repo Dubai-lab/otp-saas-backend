@@ -1,43 +1,52 @@
-import * as dotenv from 'dotenv';
-dotenv.config();
-
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+import * as dotenv from 'dotenv';
+import { AppDataSource } from './data-source';
+
+dotenv.config();
 
 async function bootstrap() {
+  // 🧠 Ensure DB is initialized before Nest starts
+  try {
+    if (!AppDataSource.isInitialized) {
+      await AppDataSource.initialize();
+      console.log('✅ Database connected successfully!');
+    }
+  } catch (error) {
+    console.error('❌ Database connection failed:', error);
+    process.exit(1); // Stop app if DB fails
+  }
+
   const app = await NestFactory.create(AppModule);
 
-  const allowedOrigins = [
-    'http://localhost:5173',
-    'http://localhost:3000',
-    process.env.FRONTEND_ORIGIN, // ✅ Production frontend (Render)
-  ].filter(Boolean); // removes undefined
+  // ✅ Global prefix for versioning (optional)
+  app.setGlobalPrefix('api');
 
-  app.enableCors({
-    origin: allowedOrigins,
-    credentials: true,
-  });
-
+  // ✅ Global validation
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
+      whitelist: true, // strip unknown properties
+      forbidNonWhitelisted: false,
+      transform: true, // auto-transform payloads to DTOs
     }),
   );
 
-  // ✅ Health check for Render / Koyeb uptime monitoring
-  const httpAdapter = app.getHttpAdapter();
-  httpAdapter.get('/health', (req: any, res: any) => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-    res.json({ status: 'ok' });
+  // ✅ CORS setup (important for frontend calls)
+  app.enableCors({
+    origin: [
+      process.env.FRONTEND_URL || 'http://localhost:5173', // local Vite
+      'https://your-frontend-domain.com', // deployed frontend
+    ],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+    credentials: true,
   });
 
-  const PORT = process.env.PORT || 5000;
+  // ✅ Define the port
+  const port = process.env.PORT || 5000;
 
-  await app.listen(PORT, '0.0.0.0');
-  console.log(`✅ Server running on http://localhost:${PORT}`);
+  await app.listen(port);
+  console.log(`🚀 Server running on http://localhost:${port}`);
 }
 
-void bootstrap();
+bootstrap();
