@@ -81,15 +81,8 @@ export class OTPService {
     const otp = this.generateOtp();
     const html = this.generateEmailHtml(template, otp);
 
-    // Debug SMTP configuration
-    console.log('SMTP Config Debug:', {
-      host: fullSmtp.host,
-      port: fullSmtp.port,
-      email: fullSmtp.email,
-      hasPassword: !!fullSmtp.passwordEncrypted,
-    });
-
     // Build nodemailer transporter with safe timeouts and optional debug
+    const debug = process.env.SMTP_DEBUG === 'true';
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     const transporter = nodemailer.createTransport({
       host: fullSmtp.host,
@@ -99,23 +92,15 @@ export class OTPService {
         user: fullSmtp.email,
         pass: decryptSecret(fullSmtp.passwordEncrypted), // ✅ correct field
       },
-      connectionTimeout: 60000, // 60s for Render
-      greetingTimeout: 30000, // 30s for Render
-      socketTimeout: 60000, // 60s for Render
-      logger: true, // Always enable logging for debugging
-      debug: true, // Always enable debug for debugging
-      // Additional options for better compatibility
-      tls: {
-        rejectUnauthorized: false, // Allow self-signed certificates
-        ciphers: 'SSLv3',
-      },
-      pool: true, // Use connection pooling
-      maxConnections: 1,
-      rateLimit: 5, // Limit to 5 emails per second
+      connectionTimeout: 10000, // 10s fail-fast
+      greetingTimeout: 5000, // 5s
+      socketTimeout: 10000, // 10s
+      logger: debug,
+      debug,
     });
 
     // Create initial "pending" log
-    const log = await this.logService.create({
+    void this.logService.create({
       user,
       recipient: dto.recipient,
       otp,
@@ -134,22 +119,33 @@ export class OTPService {
         subject: template.subject,
         html,
       });
-      await this.logService.updateStatus(log.id, 'sent');
+      void this.logService.create({
+        user,
+        recipient: dto.recipient,
+        otp,
+        subject: template.subject,
+        provider: fullSmtp.host,
+        type: 'otp',
+        status: 'sent',
+        error: undefined,
+      });
 
       return { success: true, message: 'OTP sent', otp };
-    } catch (e: unknown) {
-      await this.logService.updateStatus(log.id, 'failed');
-      const errorMessage = e instanceof Error ? e.message : 'Unknown error';
-      console.error('SMTP Error Details:', {
-        message: errorMessage,
-        stack: e instanceof Error ? e.stack : undefined,
-        fullSmtp: {
-          host: fullSmtp.host,
-          port: fullSmtp.port,
-          email: fullSmtp.email,
-        },
+    } catch (e: any) {
+      await this.logService.create({
+        user,
+        recipient: dto.recipient,
+        otp,
+        subject: template.subject,
+        provider: fullSmtp.host,
+        type: 'otp',
+        status: 'failed',
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+        error: e.message,
       });
-      throw new BadRequestException('OTP send failed: ' + errorMessage);
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      throw new BadRequestException('OTP send failed: ' + e.message);
     }
   }
 
