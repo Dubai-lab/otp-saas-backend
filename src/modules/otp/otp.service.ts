@@ -100,7 +100,7 @@ export class OTPService {
     });
 
     // Create initial "pending" log
-    void this.logService.create({
+    const log = await this.logService.create({
       user,
       recipient: dto.recipient,
       otp,
@@ -119,31 +119,11 @@ export class OTPService {
         subject: template.subject,
         html,
       });
-      void this.logService.create({
-        user,
-        recipient: dto.recipient,
-        otp,
-        subject: template.subject,
-        provider: fullSmtp.host,
-        type: 'otp',
-        status: 'sent',
-        error: undefined,
-      });
+      await this.logService.updateStatus(log.id, 'sent');
 
       return { success: true, message: 'OTP sent', otp };
     } catch (e: any) {
-      await this.logService.create({
-        user,
-        recipient: dto.recipient,
-        otp,
-        subject: template.subject,
-        provider: fullSmtp.host,
-        type: 'otp',
-        status: 'failed',
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-        error: e.message,
-      });
-
+      await this.logService.updateStatus(log.id, 'failed');
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       throw new BadRequestException('OTP send failed: ' + e.message);
     }

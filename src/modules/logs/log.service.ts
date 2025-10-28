@@ -21,7 +21,17 @@ export class LogService {
     status: 'pending' | 'sent' | 'failed' | 'verified';
     error?: string;
   }) {
-    const log = this.repo.create(data);
+    const log = this.repo.create({
+      ...data,
+      currentStatus: data.status,
+      statuses: [
+        {
+          status: data.status,
+          timestamp: new Date().toISOString(),
+          error: data.error,
+        },
+      ],
+    });
     return this.repo.save(log);
   }
 
@@ -73,7 +83,7 @@ export class LogService {
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const [failedCount] = await this.repo.query(
-      `SELECT COUNT(*) as count FROM send_logs WHERE "userId" = $1 AND status = 'failed'`,
+      `SELECT COUNT(*) as count FROM send_logs WHERE "userId" = $1 AND "currentStatus" = 'failed'`,
       [userId],
     );
 
@@ -96,7 +106,7 @@ export class LogService {
       where: {
         user: { id: userId },
         otp,
-        status: 'sent',
+        currentStatus: 'sent',
       },
       order: { createdAt: 'DESC' },
     });
@@ -106,7 +116,7 @@ export class LogService {
     return this.repo.findOne({
       where: {
         otp,
-        status: 'sent',
+        currentStatus: 'sent',
       },
       order: { createdAt: 'DESC' },
     });
@@ -116,6 +126,17 @@ export class LogService {
     id: string,
     status: 'pending' | 'sent' | 'failed' | 'verified',
   ) {
-    await this.repo.update(id, { status });
+    const log = await this.repo.findOne({ where: { id } });
+    if (!log) return;
+
+    const newStatus = {
+      status,
+      timestamp: new Date().toISOString(),
+    };
+
+    await this.repo.update(id, {
+      currentStatus: status,
+      statuses: [...log.statuses, newStatus],
+    });
   }
 }

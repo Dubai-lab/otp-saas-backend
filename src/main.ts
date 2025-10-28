@@ -8,14 +8,14 @@ import { ValidationPipe } from '@nestjs/common';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // ✅ Allow frontend on Render
+  const allowedOrigins = [
+    'http://localhost:5173',
+    'http://localhost:3000',
+    process.env.FRONTEND_ORIGIN, // ✅ Production frontend (Render)
+  ].filter(Boolean); // removes undefined
+
   app.enableCors({
-    origin: [
-      'http://localhost:5173',
-      'http://localhost:3000',
-      'https://otp-saas-frontend.onrender.com',
-      process.env.FRONTEND_ORIGIN,
-    ],
+    origin: allowedOrigins,
     credentials: true,
   });
 
@@ -27,15 +27,17 @@ async function bootstrap() {
     }),
   );
 
-  // ✅ IMPORTANT: Run migrations ONCE to create tables
-  // ✅ Healthcheck for Koyeb
-  app.getHttpAdapter().get('/health', (_req, res) => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-    return res.json({ status: 'ok' });
+  // ✅ Health check for Render / Koyeb uptime monitoring
+  const httpAdapter = app.getHttpAdapter();
+  httpAdapter.get('/health', (req: any, res: any) => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    res.json({ status: 'ok' });
   });
 
-  await app.listen(process.env.PORT || 5000, '0.0.0.0');
-  console.log(`🚀 Backend running @ ${process.env.PORT || 5000}`);
+  const PORT = process.env.PORT || 5000;
+
+  await app.listen(PORT, '0.0.0.0');
+  console.log(`✅ Server running on http://localhost:${PORT}`);
 }
 
 void bootstrap();

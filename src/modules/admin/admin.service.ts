@@ -91,10 +91,14 @@ export class AdminService {
     const sentToday = logs.filter((log) => {
       const logDate = new Date(log.createdAt);
       logDate.setHours(0, 0, 0, 0);
-      return logDate.getTime() === today.getTime() && log.status === 'sent';
+      return (
+        logDate.getTime() === today.getTime() && log.currentStatus === 'sent'
+      );
     }).length;
 
-    const failedCount = logs.filter((log) => log.status === 'failed').length;
+    const failedCount = logs.filter(
+      (log) => log.currentStatus === 'failed',
+    ).length;
 
     return {
       users: users.length,

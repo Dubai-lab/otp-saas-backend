@@ -4,8 +4,15 @@ import {
   Column,
   ManyToOne,
   CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { User } from '../users/user.entity';
+
+export interface LogStatus {
+  status: 'pending' | 'sent' | 'failed' | 'verified';
+  timestamp: string;
+  error?: string;
+}
 
 @Entity('send_logs')
 export class SendLog {
@@ -30,12 +37,18 @@ export class SendLog {
   @Column({ nullable: true })
   otp?: string;
 
+  @Column({ type: 'json', default: [] })
+  statuses: LogStatus[];
+
   @Column({ default: 'pending' })
-  status: 'pending' | 'sent' | 'failed' | 'verified';
+  currentStatus: 'pending' | 'sent' | 'failed' | 'verified';
 
   @Column({ nullable: true })
   error?: string;
 
   @CreateDateColumn()
   createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 }

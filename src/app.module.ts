@@ -14,13 +14,22 @@ import { AdminModule } from './modules/admin/admin.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+
+    // ✅ Local PostgreSQL config
     TypeOrmModule.forRoot({
       type: 'postgres',
-      url: process.env.DATABASE_URL,
-      ssl: { rejectUnauthorized: false },
+      host: process.env.DB_HOST || 'localhost',
+      port: parseInt(process.env.DB_PORT || '5432', 10),
+      username: process.env.DB_USERNAME || 'postgres',
+      password: process.env.DB_PASSWORD || 'postgres',
+      database: process.env.DB_DATABASE || 'otp_saas_db',
+
       autoLoadEntities: true,
-      synchronize: false,
-      migrationsRun: false,
+
+      // ✅ Allow DB auto creation locally
+      synchronize: true,
+
+      ssl: false,
     }),
 
     AuthModule,
