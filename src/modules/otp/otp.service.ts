@@ -92,11 +92,15 @@ export class OTPService {
         user: fullSmtp.email,
         pass: decryptSecret(fullSmtp.passwordEncrypted), // ✅ correct field
       },
-      connectionTimeout: 10000, // 10s fail-fast
-      greetingTimeout: 5000, // 5s
-      socketTimeout: 10000, // 10s
+      connectionTimeout: 30000, // 30s for Render
+      greetingTimeout: 15000, // 15s for Render
+      socketTimeout: 30000, // 30s for Render
       logger: debug,
       debug,
+      // Additional options for better compatibility
+      tls: {
+        rejectUnauthorized: false, // Allow self-signed certificates
+      },
     });
 
     // Create initial "pending" log
@@ -122,10 +126,11 @@ export class OTPService {
       await this.logService.updateStatus(log.id, 'sent');
 
       return { success: true, message: 'OTP sent', otp };
-    } catch (e: any) {
+    } catch (e: unknown) {
       await this.logService.updateStatus(log.id, 'failed');
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      throw new BadRequestException('OTP send failed: ' + e.message);
+      const errorMessage = e instanceof Error ? e.message : 'Unknown error';
+      console.error('SMTP Error:', errorMessage);
+      throw new BadRequestException('OTP send failed: ' + errorMessage);
     }
   }
 
