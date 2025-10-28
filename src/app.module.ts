@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 
+// Import feature modules
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/user.module';
 import { SMTPModule } from './modules/smtp-config/smtp.module';
@@ -13,25 +14,40 @@ import { AdminModule } from './modules/admin/admin.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
-
-    // ✅ Local PostgreSQL config
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: process.env.DB_HOST || 'localhost',
-      port: parseInt(process.env.DB_PORT || '5432', 10),
-      username: process.env.DB_USERNAME || 'postgres',
-      password: process.env.DB_PASSWORD || 'postgres',
-      database: process.env.DB_DATABASE || 'otp_saas_db',
-
-      autoLoadEntities: true,
-
-      // ✅ Allow DB auto creation locally
-      synchronize: true,
-
-      ssl: false,
+    // ✅ Load environment variables globally
+    ConfigModule.forRoot({
+      isGlobal: true,
     }),
 
+    // ✅ Production-grade TypeORM config using DATABASE_URL
+    TypeOrmModule.forRootAsync({
+      useFactory: () => {
+        if (!process.env.DATABASE_URL) {
+          throw new Error(
+            '❌ DATABASE_URL is missing! Please set it in your environment variables.',
+          );
+        }
+
+        console.log('🔗 Connecting to database using DATABASE_URL');
+
+        return {
+          type: 'postgres',
+          url: process.env.DATABASE_URL,
+          ssl:
+            process.env.NODE_ENV === 'production'
+              ? { rejectUnauthorized: false }
+              : false,
+
+          // ✅ Automatically load all entities and migrations
+          autoLoadEntities: true,
+          migrationsRun: true,
+          synchronize: false, // Never true in production
+          logging: true,
+        };
+      },
+    }),
+
+    // ✅ Application modules
     AuthModule,
     UsersModule,
     SMTPModule,
