@@ -35,11 +35,11 @@ async function bootstrap() {
   // ✅ CORS setup (important for frontend calls)
   app.enableCors({
     origin: [
-      process.env.FRONTEND_URL || 'http://localhost:5173', // local Vite
-      'https://new-otp-frontend.onrender.com', // deployed frontend
+      'http://localhost:5173',
+      'https://your-frontend-name.onrender.com',
     ],
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    credentials: false,
   });
 
   // ✅ Define the port
