@@ -19,7 +19,11 @@ export class PaymentService {
     @InjectRepository(Plan)
     private readonly planRepository: Repository<Plan>,
   ) {
-    this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
+    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+    if (!stripeSecretKey) {
+      throw new Error('STRIPE_SECRET_KEY environment variable is not set');
+    }
+    this.stripe = new Stripe(stripeSecretKey, {
       apiVersion: '2025-09-30.clover',
     });
   }
