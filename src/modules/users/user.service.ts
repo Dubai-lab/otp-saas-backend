@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import * as bcrypt from 'bcrypt';
 import { User } from './user.entity';
+import { UpdateProfileDto, UpdateSecurityDto } from './dto/update-user.dto';
 
 type CreateUserInput = Pick<User, 'email' | 'fullName' | 'password' | 'role'>;
 
@@ -42,5 +44,37 @@ export class UsersService {
   ) {
     await this.repo.update(userId, data);
     return this.findById(userId);
+  }
+
+  async updateProfile(userId: string, updateProfileDto: UpdateProfileDto) {
+    await this.repo.update(userId, updateProfileDto);
+    return this.findById(userId);
+  }
+
+  async updateSecurity(userId: string, updateSecurityDto: UpdateSecurityDto) {
+    await this.repo.update(userId, updateSecurityDto);
+    return this.findById(userId);
+  }
+
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+  ): Promise<boolean> {
+    const user = await this.findById(userId);
+    if (!user) return false;
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    const isCurrentPasswordValid = await bcrypt.compare(
+      currentPassword,
+      user.password,
+    );
+    if (!isCurrentPasswordValid) return false;
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    await this.repo.update(userId, { password: hashedNewPassword });
+    return true;
   }
 }

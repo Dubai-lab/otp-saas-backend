@@ -28,6 +28,24 @@ export class User {
   @Column({ type: 'varchar', default: 'user' })
   role: 'user' | 'admin';
 
+  @Column({ type: 'varchar', nullable: true })
+  avatar?: string;
+
+  @Column({ type: 'boolean', default: false })
+  twoFactorEnabled: boolean;
+
+  @Column({ type: 'int', default: 30 })
+  sessionTimeout: number;
+
+  @Column({ type: 'boolean', default: true })
+  loginNotifications: boolean;
+
+  @Column({ type: 'varchar', nullable: true })
+  recoveryEmail?: string;
+
+  @Column({ type: 'varchar', nullable: true })
+  recoveryPhone?: string;
+
   @OneToMany(() => SMTPConfig, (smtp) => smtp.user)
   smtpConfigs: SMTPConfig[];
 
