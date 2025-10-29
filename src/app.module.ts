@@ -11,6 +11,9 @@ import { ApiKeyModule } from './modules/apikey/apikey.module';
 import { OTPModule } from './modules/otp/otp.module';
 import { LogModule } from './modules/logs/log.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { PlanModule } from './modules/plans/plan.module';
+import { UsageModule } from './modules/usage/usage.module';
+import { PaymentModule } from './modules/payments/payment.module';
 
 @Module({
   imports: [
@@ -56,6 +59,9 @@ import { AdminModule } from './modules/admin/admin.module';
     OTPModule,
     LogModule,
     AdminModule,
+    PlanModule,
+    UsageModule,
+    PaymentModule,
   ],
 })
 export class AppModule {}

@@ -3,6 +3,8 @@ import {
   PrimaryGeneratedColumn,
   Column,
   OneToMany,
+  ManyToOne,
+  JoinColumn,
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -10,6 +12,9 @@ import { SMTPConfig } from '../smtp-config/smtp.entity';
 import { Template } from '../templates/template.entity';
 import { ApiKey } from '../apikey/apikey.entity';
 import { SendLog } from '../logs/log.entity';
+import { Plan } from '../plans/entities/plan.entity';
+import { Usage } from '../usage/entities/usage.entity';
+import { Payment } from '../payments/entities/payment.entity';
 
 @Entity('users')
 export class User {
@@ -57,6 +62,19 @@ export class User {
 
   @OneToMany(() => SendLog, (log) => log.user)
   logs: SendLog[];
+
+  @Column('uuid', { nullable: true })
+  planId: string;
+
+  @ManyToOne(() => Plan, (plan) => plan.users)
+  @JoinColumn({ name: 'planId' })
+  plan: Plan;
+
+  @OneToMany(() => Usage, (usage) => usage.user)
+  usages: Usage[];
+
+  @OneToMany(() => Payment, (payment) => payment.user)
+  payments: Payment[];
 
   @CreateDateColumn()
   createdAt: Date;
