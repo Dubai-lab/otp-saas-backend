@@ -35,7 +35,7 @@ async function bootstrap() {
   // ✅ CORS setup (important for frontend calls)
   app.enableCors({
     origin: ['http://localhost:5173', 'https://new-otp-frontend.onrender.com'],
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
     credentials: true,
   });
