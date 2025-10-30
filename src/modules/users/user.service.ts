@@ -5,10 +5,13 @@ import * as bcrypt from 'bcrypt';
 import { User } from './user.entity';
 import { UpdateProfileDto, UpdateSecurityDto } from './dto/update-user.dto';
 
-type CreateUserInput = Pick<
-  User,
-  'email' | 'fullName' | 'password' | 'role' | 'planId'
->;
+type CreateUserInput = {
+  email: string;
+  fullName: string;
+  password: string;
+  role: 'user' | 'admin';
+  planId?: string | null;
+};
 
 @Injectable()
 export class UsersService {

@@ -107,14 +107,13 @@ export class PlanService {
   }
 
   async findCurrentUserPlan(userId: string): Promise<Plan> {
-    // First try to find user with their plan
+    // First find the user without relations to avoid invalid planId queries
     const user = await this.planRepository.manager.findOne('User', {
       where: { id: userId },
-      relations: ['plan'],
     });
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    if (user && (user as any).plan && (user as any).planId) {
+    if (user && (user as any).planId) {
       // Check if planId is a valid UUID (not 'current' or other invalid values)
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
       const planId = (user as any).planId;
@@ -125,8 +124,13 @@ export class PlanService {
           planId,
         )
       ) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        return (user as any).plan;
+        // Load the plan separately if planId is valid
+        try {
+          const plan = await this.findOne(planId);
+          return plan;
+        } catch {
+          // If plan not found, fall back to default
+        }
       }
     }
 

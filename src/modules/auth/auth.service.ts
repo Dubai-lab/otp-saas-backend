@@ -29,8 +29,15 @@ export class AuthService {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     const hash = await bcrypt.hash(dto.password, 10);
 
-    // Get default plan (Free plan) for new users
-    const defaultPlan = await this.planService.findDefaultPlan();
+    // Get default plan (Free plan) for new users, but handle gracefully if none exists
+    let defaultPlanId: string | null = null;
+    try {
+      const defaultPlan = await this.planService.findDefaultPlan();
+      defaultPlanId = defaultPlan.id;
+    } catch {
+      // If no default plan exists, leave planId as null
+      // The plan service will handle fallback when needed
+    }
 
     const user = await this.usersService.create({
       email: dto.email,
@@ -38,7 +45,7 @@ export class AuthService {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       password: hash,
       role: 'user',
-      planId: defaultPlan.id,
+      planId: defaultPlanId, // Assign default plan if available, otherwise null
     });
 
     return {

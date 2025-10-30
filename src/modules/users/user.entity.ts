@@ -64,7 +64,7 @@ export class User {
   logs: SendLog[];
 
   @Column('uuid', { nullable: true })
-  planId: string;
+  planId: string | null;
 
   @ManyToOne(() => Plan, (plan) => plan.users)
   @JoinColumn({ name: 'planId' })
