@@ -110,47 +110,74 @@ export class PlanService {
   }
 
   async findCurrentUserPlan(userId: string): Promise<Plan> {
-    // First find the user using the proper User repository
-    const user = await this.userRepository.findOne({
-      where: { id: userId },
-    });
+    try {
+      console.log('Finding current plan for user:', userId);
 
-    if (user && user.planId) {
-      // Check if planId is a valid UUID (not 'current' or other invalid values)
-      const planId = user.planId;
-      if (
-        planId &&
-        planId !== 'current' &&
-        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-          planId,
-        )
-      ) {
-        // Load the plan separately if planId is valid
-        try {
-          const plan = await this.findOne(planId);
-          return plan;
-        } catch {
-          // If plan not found, fall back to default
+      // First find the user using the proper User repository
+      const user = await this.userRepository.findOne({
+        where: { id: userId },
+        relations: ['plan'],
+      });
+
+      console.log(
+        'User found:',
+        user ? { id: user.id, planId: user.planId } : 'null',
+      );
+
+      if (user && user.planId) {
+        // Check if planId is a valid UUID (not 'current' or other invalid values)
+        const planId = user.planId;
+        console.log('User has planId:', planId);
+
+        if (
+          planId &&
+          planId !== 'current' &&
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+            planId,
+          )
+        ) {
+          // Load the plan separately if planId is valid
+          try {
+            console.log('Loading plan by ID:', planId);
+            const plan = await this.findOne(planId);
+            console.log('Plan loaded successfully:', plan.name);
+            return plan;
+          } catch (error) {
+            console.error('Error loading plan by ID:', error);
+            // If plan not found, fall back to default
+          }
+        } else {
+          console.log('Invalid planId format:', planId);
         }
       }
-    }
 
-    // Return default plan if user has no valid plan
-    try {
-      return await this.findDefaultPlan();
-    } catch {
-      // If no default plan exists, create a fallback plan
-      const fallbackPlan = this.planRepository.create({
-        name: 'Free',
-        otpLimit: 100,
-        smtpLimit: 1,
-        templateLimit: 1,
-        apiKeyLimit: 1,
-        price: 0,
-        currency: 'USD',
-        isDefault: true,
-      });
-      return this.planRepository.save(fallbackPlan);
+      // Return default plan if user has no valid plan
+      console.log('Falling back to default plan');
+      try {
+        const defaultPlan = await this.findDefaultPlan();
+        console.log('Default plan found:', defaultPlan.name);
+        return defaultPlan;
+      } catch (error) {
+        console.error('Error finding default plan:', error);
+        // If no default plan exists, create a fallback plan
+        console.log('Creating fallback plan');
+        const fallbackPlan = this.planRepository.create({
+          name: 'Free',
+          otpLimit: 100,
+          smtpLimit: 1,
+          templateLimit: 1,
+          apiKeyLimit: 1,
+          price: 0,
+          currency: 'USD',
+          isDefault: true,
+        });
+        const savedPlan = await this.planRepository.save(fallbackPlan);
+        console.log('Fallback plan created:', savedPlan.name);
+        return savedPlan;
+      }
+    } catch (error) {
+      console.error('Unexpected error in findCurrentUserPlan:', error);
+      throw error;
     }
   }
 }

@@ -44,8 +44,13 @@ export class PlanController {
 
   @Get('current')
   findCurrent(@CurrentUser() user: any) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
-    return this.planService.findCurrentUserPlan(user.id);
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+      return this.planService.findCurrentUserPlan(user.id);
+    } catch (error) {
+      console.error('Error fetching current user plan:', error);
+      throw error;
+    }
   }
 
   @Patch(':id')
