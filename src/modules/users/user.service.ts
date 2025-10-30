@@ -39,6 +39,16 @@ export class UsersService {
   findAllWithPlans() {
     return this.repo.find({
       relations: ['plan'],
+      select: {
+        id: true,
+        fullName: true,
+        email: true,
+        role: true,
+        createdAt: true,
+        plan: {
+          name: true,
+        },
+      },
     });
   }
 
