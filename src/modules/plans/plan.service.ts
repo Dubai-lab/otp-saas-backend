@@ -120,6 +120,21 @@ export class PlanService {
     }
 
     // Return default plan if user has no plan
-    return await this.findDefaultPlan();
+    try {
+      return await this.findDefaultPlan();
+    } catch {
+      // If no default plan exists, create a fallback plan
+      const fallbackPlan = this.planRepository.create({
+        name: 'Free',
+        otpLimit: 100,
+        smtpLimit: 1,
+        templateLimit: 1,
+        apiKeyLimit: 1,
+        price: 0,
+        currency: 'USD',
+        isDefault: true,
+      });
+      return this.planRepository.save(fallbackPlan);
+    }
   }
 }
