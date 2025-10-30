@@ -114,12 +114,23 @@ export class PlanService {
     });
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    if (user && (user as any).plan) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      return (user as any).plan;
+    if (user && (user as any).plan && (user as any).planId) {
+      // Check if planId is a valid UUID (not 'current' or other invalid values)
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+      const planId = (user as any).planId;
+      if (
+        planId &&
+        planId !== 'current' &&
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+          planId,
+        )
+      ) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        return (user as any).plan;
+      }
     }
 
-    // Return default plan if user has no plan
+    // Return default plan if user has no valid plan
     try {
       return await this.findDefaultPlan();
     } catch {
