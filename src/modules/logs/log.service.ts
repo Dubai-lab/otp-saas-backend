@@ -59,19 +59,19 @@ export class LogService {
   async getStats(userId: string) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const [smtpCount] = await this.repo.query(
-      `SELECT COUNT(*) as count FROM smtp_configs WHERE "userId" = $1`,
+      `SELECT COUNT(*) as count FROM smtp_config WHERE "userId" = $1`,
       [userId],
     );
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const [templateCount] = await this.repo.query(
-      `SELECT COUNT(*) as count FROM templates WHERE "userId" = $1`,
+      `SELECT COUNT(*) as count FROM template WHERE "userId" = $1`,
       [userId],
     );
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const [apiKeyCount] = await this.repo.query(
-      `SELECT COUNT(*) as count FROM api_keys WHERE "userId" = $1`,
+      `SELECT COUNT(*) as count FROM api_key WHERE "userId" = $1`,
       [userId],
     );
 
@@ -90,7 +90,7 @@ export class LogService {
     // Get user's plan limit for OTPs
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const [userPlan] = await this.repo.query(
-      `SELECT p."otpLimit" FROM users u LEFT JOIN plans p ON u."planId" = p.id WHERE u.id = $1`,
+      `SELECT p."otpLimit" FROM users u LEFT JOIN plan p ON u."planId" = p.id WHERE u.id = $1`,
       [userId],
     );
 
