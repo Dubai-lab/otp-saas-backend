@@ -13,6 +13,8 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { AdminService } from './admin.service';
 import { UpdateRoleDto } from './dto/update-role.dto';
+import { CreatePlanDto } from '../plans/dto/create-plan.dto';
+import { UpdatePlanDto } from '../plans/dto/update-plan.dto';
 
 @Controller('admin')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -112,17 +114,27 @@ export class AdminController {
   }
 
   @Post('plans')
-  createPlan(@Body() dto: any) {
+  createPlan(@Body() dto: CreatePlanDto) {
     return this.service.createPlan(dto);
   }
 
   @Patch('plans/:id')
-  updatePlan(@Param('id') id: string, @Body() dto: any) {
+  updatePlan(@Param('id') id: string, @Body() dto: UpdatePlanDto) {
     return this.service.updatePlan(id, dto);
   }
 
   @Delete('plans/:id')
   deletePlan(@Param('id') id: string) {
     return this.service.deletePlan(id);
+  }
+
+  @Delete('user/:id')
+  deleteUser(@Param('id') id: string) {
+    return this.service.deleteUser(id);
+  }
+
+  @Patch('user/:id/plan')
+  updateUserPlan(@Param('id') id: string, @Body() dto: { planId: string }) {
+    return this.service.updateUserPlan(id, dto.planId);
   }
 }

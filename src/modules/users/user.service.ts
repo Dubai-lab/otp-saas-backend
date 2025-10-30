@@ -80,4 +80,17 @@ export class UsersService {
     await this.repo.update(userId, { password: hashedNewPassword });
     return true;
   }
+
+  async remove(userId: string): Promise<boolean> {
+    const result = await this.repo.delete(userId);
+    return (result.affected ?? 0) > 0;
+  }
+
+  async updatePlan(userId: string, planId: string): Promise<User | null> {
+    const user = await this.repo.findOne({ where: { id: userId } });
+    if (!user) return null;
+
+    user.planId = planId;
+    return this.repo.save(user);
+  }
 }

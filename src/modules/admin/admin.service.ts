@@ -6,6 +6,8 @@ import { ApiKeyService } from '../apikey/apikey.service';
 import { TemplateService } from '../templates/template.service';
 import { PlanService } from '../plans/plan.service';
 import { UpdateRoleDto } from './dto/update-role.dto';
+import { CreatePlanDto } from '../plans/dto/create-plan.dto';
+import { UpdatePlanDto } from '../plans/dto/update-plan.dto';
 
 @Injectable()
 export class AdminService {
@@ -124,15 +126,35 @@ export class AdminService {
     return this.planService.findAll();
   }
 
-  createPlan(dto: any) {
+  createPlan(dto: CreatePlanDto) {
     return this.planService.create(dto);
   }
 
-  updatePlan(id: string, dto: any) {
+  updatePlan(id: string, dto: UpdatePlanDto) {
     return this.planService.update(id, dto);
   }
 
   deletePlan(id: string) {
     return this.planService.remove(id);
+  }
+
+  async deleteUser(userId: string) {
+    const deleted = await this.usersService.remove(userId);
+
+    if (!deleted) {
+      throw new NotFoundException('User not found');
+    }
+
+    return { message: 'User deleted successfully' };
+  }
+
+  async updateUserPlan(userId: string, planId: string) {
+    const updated = await this.usersService.updatePlan(userId, planId);
+
+    if (!updated) {
+      throw new NotFoundException('User or plan not found');
+    }
+
+    return { message: 'User plan updated successfully', user: updated };
   }
 }
