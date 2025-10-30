@@ -37,11 +37,6 @@ export class PlanController {
     return this.planService.findDefaultPlan();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.planService.findOne(id);
-  }
-
   @Get('current')
   findCurrent(@CurrentUser() user: any) {
     try {
@@ -51,6 +46,11 @@ export class PlanController {
       console.error('Error fetching current user plan:', error);
       throw error;
     }
+  }
+
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.planService.findOne(id);
   }
 
   @Patch(':id')
