@@ -111,28 +111,31 @@ export class UsersService {
       return;
     }
 
-    // Find all users without a plan using raw query
+    // Find all users without a valid plan (planId is null, 'current', or invalid)
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const usersWithoutPlan = await this.repo.query(`
-      SELECT id FROM user WHERE planId IS NULL
+    const usersWithoutValidPlan = await this.repo.query(`
+      SELECT id, "planId" FROM "user" WHERE "planId" IS NULL OR "planId" = 'current' OR "planId" NOT IN (SELECT id FROM plan)
     `);
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    if (usersWithoutPlan.length === 0) {
-      console.log('All users already have plans assigned');
+    if (usersWithoutValidPlan.length === 0) {
+      console.log('All users already have valid plans assigned');
       return;
     }
 
-    // Assign default plan to users without a plan using raw query
+    // Assign default plan to users without a valid plan
     await this.repo.query(
       `
-      UPDATE user SET planId = ? WHERE planId IS NULL
+      UPDATE "user" SET "planId" = ? WHERE "planId" IS NULL OR "planId" = 'current' OR "planId" NOT IN (SELECT id FROM plan)
     `,
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       [(defaultPlan as any).id],
     );
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    console.log(`Assigned default plan to ${usersWithoutPlan.length} users`);
+    console.log(
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      `Assigned default plan to ${usersWithoutValidPlan.length} users`,
+    );
   }
 }
