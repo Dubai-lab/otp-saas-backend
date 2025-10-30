@@ -130,7 +130,7 @@ export class UsersService {
     // Assign default plan to users without a valid plan
     await this.repo.query(
       `
-      UPDATE "users" SET "planId" = ? WHERE "planId" IS NULL OR CAST("planId" AS TEXT) = 'current' OR "planId" NOT IN (SELECT id FROM plan)
+      UPDATE "users" SET "planId" = $1 WHERE "planId" IS NULL OR CAST("planId" AS TEXT) = 'current' OR "planId" NOT IN (SELECT id FROM plan)
     `,
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
       [(defaultPlan as any).id],
