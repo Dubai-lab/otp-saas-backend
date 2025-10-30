@@ -115,9 +115,10 @@ export class UsersService {
     }
 
     // Find all users without a valid plan (planId is null, 'current', or invalid)
+    // Use CAST to handle the 'current' string value properly
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const usersWithoutValidPlan = await this.repo.query(`
-      SELECT id, "planId" FROM "users" WHERE "planId" IS NULL OR "planId" = 'current' OR "planId" NOT IN (SELECT id FROM plan)
+      SELECT id, "planId" FROM "users" WHERE "planId" IS NULL OR CAST("planId" AS TEXT) = 'current' OR "planId" NOT IN (SELECT id FROM plan)
     `);
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -129,7 +130,7 @@ export class UsersService {
     // Assign default plan to users without a valid plan
     await this.repo.query(
       `
-      UPDATE "users" SET "planId" = ? WHERE "planId" IS NULL OR "planId" = 'current' OR "planId" NOT IN (SELECT id FROM plan)
+      UPDATE "users" SET "planId" = ? WHERE "planId" IS NULL OR CAST("planId" AS TEXT) = 'current' OR "planId" NOT IN (SELECT id FROM plan)
     `,
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
       [(defaultPlan as any).id],
