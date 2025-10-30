@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -118,11 +117,11 @@ export class UsersService {
     // Find all users without a valid plan (planId is null, 'current', or invalid)
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const usersWithoutValidPlan = await this.repo.query(`
-      SELECT id, "planId" FROM "user" WHERE "planId" IS NULL OR "planId" = 'current' OR "planId" NOT IN (SELECT id FROM plan)
+      SELECT id, "planId" FROM "users" WHERE "planId" IS NULL OR "planId" = 'current' OR "planId" NOT IN (SELECT id FROM plan)
     `);
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    if (usersWithoutValidPlan.length === 0) {
+    if ((usersWithoutValidPlan as any[]).length === 0) {
       console.log('All users already have valid plans assigned');
       return { message: 'All users already have valid plans assigned' };
     }
@@ -130,7 +129,7 @@ export class UsersService {
     // Assign default plan to users without a valid plan
     await this.repo.query(
       `
-      UPDATE "user" SET "planId" = ? WHERE "planId" IS NULL OR "planId" = 'current' OR "planId" NOT IN (SELECT id FROM plan)
+      UPDATE "users" SET "planId" = ? WHERE "planId" IS NULL OR "planId" = 'current' OR "planId" NOT IN (SELECT id FROM plan)
     `,
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
       [(defaultPlan as any).id],
@@ -139,12 +138,12 @@ export class UsersService {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     console.log(
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      `Assigned default plan to ${usersWithoutValidPlan.length} users`,
+      `Assigned default plan to ${(usersWithoutValidPlan as any[]).length} users`,
     );
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     return {
-      message: `Default plan assigned to ${usersWithoutValidPlan.length} existing users`,
+      message: `Default plan assigned to ${(usersWithoutValidPlan as any[]).length} existing users`,
     };
   }
 }
