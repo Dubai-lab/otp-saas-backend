@@ -94,6 +94,7 @@ export class LogService {
       [userId],
     );
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     const otpLimit = userPlan?.otpLimit || 100; // Default to 100 if no plan found
 
     return {
@@ -107,6 +108,7 @@ export class LogService {
       sentToday: parseInt(sentToday.count),
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       failedCount: parseInt(failedCount.count),
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       otpLimit,
     };
   }
