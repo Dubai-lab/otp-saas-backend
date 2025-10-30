@@ -13,6 +13,7 @@ import { CreatePlanDto } from './dto/create-plan.dto';
 import { UpdatePlanDto } from './dto/update-plan.dto';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { CurrentUser } from '../../common/decorators/user.decorator';
 
 @Controller('plans')
 @UseGuards(RolesGuard)
@@ -39,6 +40,12 @@ export class PlanController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.planService.findOne(id);
+  }
+
+  @Get('current')
+  findCurrent(@CurrentUser() user: any) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+    return this.planService.findCurrentUserPlan(user.id);
   }
 
   @Patch(':id')

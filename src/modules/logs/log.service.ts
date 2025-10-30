@@ -87,6 +87,15 @@ export class LogService {
       [userId],
     );
 
+    // Get user's plan limit for OTPs
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const [userPlan] = await this.repo.query(
+      `SELECT p."otpLimit" FROM users u LEFT JOIN plans p ON u."planId" = p.id WHERE u.id = $1`,
+      [userId],
+    );
+
+    const otpLimit = userPlan?.otpLimit || 100; // Default to 100 if no plan found
+
     return {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       smtpCount: parseInt(smtpCount.count),
@@ -98,6 +107,7 @@ export class LogService {
       sentToday: parseInt(sentToday.count),
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       failedCount: parseInt(failedCount.count),
+      otpLimit,
     };
   }
 

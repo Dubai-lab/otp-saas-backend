@@ -104,4 +104,18 @@ export class PlanService {
 
     await this.planRepository.remove(plan);
   }
+
+  async findCurrentUserPlan(userId: string): Promise<Plan> {
+    const user = (await this.planRepository.manager.findOne('User', {
+      where: { id: userId },
+      relations: ['plan'],
+    })) as { id: string; plan?: Plan };
+
+    if (!user || !user.plan) {
+      // Return default plan if user has no plan
+      return await this.findDefaultPlan();
+    }
+
+    return user.plan;
+  }
 }

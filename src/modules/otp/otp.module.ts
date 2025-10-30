@@ -7,6 +7,7 @@ import { ApiKeyModule } from '../apikey/apikey.module';
 import { SMTPModule } from '../smtp-config/smtp.module';
 import { TemplateModule } from '../templates/template.module';
 import { LogModule } from '../logs/log.module';
+import { PlanModule } from '../plans/plan.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { LogModule } from '../logs/log.module';
     SMTPModule,
     TemplateModule,
     LogModule,
+    PlanModule,
   ],
   controllers: [OTPController],
   providers: [OTPService],

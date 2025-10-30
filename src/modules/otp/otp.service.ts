@@ -7,6 +7,7 @@ import { decryptSecret } from '../../common/utils/crypto.util';
 import { SendOtpDto } from './dto/send-otp.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { LogService } from '../logs/log.service';
+import { PlanService } from '../plans/plan.service';
 
 type TemplateStyles = {
   header?: {
@@ -53,6 +54,7 @@ export class OTPService {
     private readonly smtpService: SMTPService,
     private readonly templateService: TemplateService,
     private readonly logService: LogService,
+    private readonly planService: PlanService,
   ) {}
 
   generateOtp(): string {
@@ -62,6 +64,30 @@ export class OTPService {
   async send(dto: SendOtpDto) {
     const user = await this.apiKeyService.validateById(dto.apiKeyId);
     if (!user) throw new BadRequestException('Invalid API Key');
+
+    // Check OTP limit for the day
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    // Count today's OTP sends for this user
+    const todaySends = await this.logService.findForUser(user.id);
+    const todaysOtpCount = todaySends.filter(
+      (log) =>
+        log.type === 'otp' &&
+        log.currentStatus === 'sent' &&
+        new Date(log.createdAt) >= today &&
+        new Date(log.createdAt) < tomorrow,
+    ).length;
+
+    // Check user's plan limit
+    const userPlan = user.plan || (await this.planService.findDefaultPlan());
+    if (todaysOtpCount >= userPlan.otpLimit) {
+      throw new BadRequestException(
+        `Daily OTP limit reached (${userPlan.otpLimit}). Please upgrade your plan to send more OTPs.`,
+      );
+    }
 
     // Select SMTP config
     const smtps = await this.smtpService.getAllForUser(user.id);

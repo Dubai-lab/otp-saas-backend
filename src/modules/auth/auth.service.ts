@@ -11,6 +11,7 @@ import { LoginDto } from './dto/login.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { OTPService } from '../otp/otp.service';
+import { PlanService } from '../plans/plan.service';
 
 @Injectable()
 export class AuthService {
@@ -18,6 +19,7 @@ export class AuthService {
     private readonly usersService: UsersService,
     private readonly jwt: JwtService,
     private readonly otpService: OTPService,
+    private readonly planService: PlanService,
   ) {}
 
   async register(dto: RegisterDto) {
@@ -26,12 +28,17 @@ export class AuthService {
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     const hash = await bcrypt.hash(dto.password, 10);
+
+    // Get default plan (Free plan) for new users
+    const defaultPlan = await this.planService.findDefaultPlan();
+
     const user = await this.usersService.create({
       email: dto.email,
       fullName: dto.fullName,
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       password: hash,
       role: 'user',
+      planId: defaultPlan.id,
     });
 
     return {
