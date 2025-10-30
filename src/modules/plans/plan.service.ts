@@ -106,16 +106,19 @@ export class PlanService {
   }
 
   async findCurrentUserPlan(userId: string): Promise<Plan> {
-    const user = (await this.planRepository.manager.findOne('User', {
+    // First try to find user with their plan
+    const user = await this.planRepository.manager.findOne('User', {
       where: { id: userId },
       relations: ['plan'],
-    })) as { id: string; plan?: Plan };
+    });
 
-    if (!user || !user.plan) {
-      // Return default plan if user has no plan
-      return await this.findDefaultPlan();
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    if (user && (user as any).plan) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
+      return (user as any).plan;
     }
 
-    return user.plan;
+    // Return default plan if user has no plan
+    return await this.findDefaultPlan();
   }
 }
