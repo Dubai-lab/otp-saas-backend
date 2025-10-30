@@ -21,7 +21,7 @@ export class AdminService {
   ) {}
 
   findAllUsers() {
-    return this.usersService.findAll();
+    return this.usersService.findAllWithPlans();
   }
 
   async updateUserRole(userId: string, dto: UpdateRoleDto) {
@@ -156,5 +156,9 @@ export class AdminService {
     }
 
     return { message: 'User plan updated successfully', user: updated };
+  }
+
+  async assignDefaultPlanToExistingUsers() {
+    return this.usersService.assignDefaultPlanToExistingUsers();
   }
 }

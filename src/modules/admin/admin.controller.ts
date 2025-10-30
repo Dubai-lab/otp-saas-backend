@@ -137,4 +137,9 @@ export class AdminController {
   updateUserPlan(@Param('id') id: string, @Body() dto: { planId: string }) {
     return this.service.updateUserPlan(id, dto.planId);
   }
+
+  @Post('assign-default-plans')
+  assignDefaultPlans() {
+    return this.service.assignDefaultPlanToExistingUsers();
+  }
 }

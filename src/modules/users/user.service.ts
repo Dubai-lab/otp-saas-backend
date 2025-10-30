@@ -33,6 +33,12 @@ export class UsersService {
     return this.repo.find();
   }
 
+  findAllWithPlans() {
+    return this.repo.find({
+      relations: ['plan'],
+    });
+  }
+
   async updateRole(userId: string, role: string): Promise<User | null> {
     const user = await this.repo.findOne({ where: { id: userId } });
     if (!user) return null;
@@ -92,5 +98,41 @@ export class UsersService {
 
     user.planId = planId;
     return this.repo.save(user);
+  }
+
+  async assignDefaultPlanToExistingUsers() {
+    // Get the default plan
+    const defaultPlan = await this.repo.manager.findOne('Plan', {
+      where: { isDefault: true },
+    });
+
+    if (!defaultPlan) {
+      console.log('No default plan found, skipping user plan assignment');
+      return;
+    }
+
+    // Find all users without a plan using raw query
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const usersWithoutPlan = await this.repo.query(`
+      SELECT id FROM user WHERE planId IS NULL
+    `);
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    if (usersWithoutPlan.length === 0) {
+      console.log('All users already have plans assigned');
+      return;
+    }
+
+    // Assign default plan to users without a plan using raw query
+    await this.repo.query(
+      `
+      UPDATE user SET planId = ? WHERE planId IS NULL
+    `,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      [(defaultPlan as any).id],
+    );
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    console.log(`Assigned default plan to ${usersWithoutPlan.length} users`);
   }
 }
