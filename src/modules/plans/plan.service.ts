@@ -9,12 +9,15 @@ import { Repository } from 'typeorm';
 import { Plan } from './entities/plan.entity';
 import { CreatePlanDto } from './dto/create-plan.dto';
 import { UpdatePlanDto } from './dto/update-plan.dto';
+import { User } from '../users/user.entity';
 
 @Injectable()
 export class PlanService {
   constructor(
     @InjectRepository(Plan)
     private readonly planRepository: Repository<Plan>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
   ) {}
 
   async create(createPlanDto: CreatePlanDto): Promise<Plan> {
@@ -107,16 +110,14 @@ export class PlanService {
   }
 
   async findCurrentUserPlan(userId: string): Promise<Plan> {
-    // First find the user without relations to avoid invalid planId queries
-    const user = await this.planRepository.manager.findOne('User', {
+    // First find the user using the proper User repository
+    const user = await this.userRepository.findOne({
       where: { id: userId },
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    if (user && (user as any).planId) {
+    if (user && user.planId) {
       // Check if planId is a valid UUID (not 'current' or other invalid values)
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-      const planId = (user as any).planId;
+      const planId = user.planId;
       if (
         planId &&
         planId !== 'current' &&
