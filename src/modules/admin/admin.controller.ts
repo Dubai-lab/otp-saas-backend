@@ -104,4 +104,25 @@ export class AdminController {
   cleanupSystem() {
     return this.service.cleanupSystem();
   }
+
+  // Plan management endpoints
+  @Get('plans')
+  getAllPlans() {
+    return this.service.findAllPlans();
+  }
+
+  @Post('plans')
+  createPlan(@Body() dto: any) {
+    return this.service.createPlan(dto);
+  }
+
+  @Patch('plans/:id')
+  updatePlan(@Param('id') id: string, @Body() dto: any) {
+    return this.service.updatePlan(id, dto);
+  }
+
+  @Delete('plans/:id')
+  deletePlan(@Param('id') id: string) {
+    return this.service.deletePlan(id);
+  }
 }

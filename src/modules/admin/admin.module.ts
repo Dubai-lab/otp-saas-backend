@@ -6,9 +6,17 @@ import { LogModule } from '../logs/log.module';
 import { SMTPModule } from '../smtp-config/smtp.module';
 import { ApiKeyModule } from '../apikey/apikey.module';
 import { TemplateModule } from '../templates/template.module';
+import { PlanModule } from '../plans/plan.module';
 
 @Module({
-  imports: [UsersModule, LogModule, SMTPModule, ApiKeyModule, TemplateModule],
+  imports: [
+    UsersModule,
+    LogModule,
+    SMTPModule,
+    ApiKeyModule,
+    TemplateModule,
+    PlanModule,
+  ],
   controllers: [AdminController],
   providers: [AdminService],
 })

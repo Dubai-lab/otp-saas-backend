@@ -4,6 +4,7 @@ import { LogService } from '../logs/log.service';
 import { SMTPService } from '../smtp-config/smtp.service';
 import { ApiKeyService } from '../apikey/apikey.service';
 import { TemplateService } from '../templates/template.service';
+import { PlanService } from '../plans/plan.service';
 import { UpdateRoleDto } from './dto/update-role.dto';
 
 @Injectable()
@@ -14,6 +15,7 @@ export class AdminService {
     private readonly smtpConfigService: SMTPService,
     private readonly apiKeyService: ApiKeyService,
     private readonly templateService: TemplateService,
+    private readonly planService: PlanService,
   ) {}
 
   findAllUsers() {
@@ -115,5 +117,22 @@ export class AdminService {
     // Implement cleanup logic - delete old logs, expired OTPs, etc.
     // For now, just return success
     return { message: 'System cleanup completed' };
+  }
+
+  // Plan management methods
+  findAllPlans() {
+    return this.planService.findAll();
+  }
+
+  createPlan(dto: any) {
+    return this.planService.create(dto);
+  }
+
+  updatePlan(id: string, dto: any) {
+    return this.planService.update(id, dto);
+  }
+
+  deletePlan(id: string) {
+    return this.planService.remove(id);
   }
 }

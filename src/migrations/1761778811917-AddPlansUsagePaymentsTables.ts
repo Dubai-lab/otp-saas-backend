@@ -14,6 +14,9 @@ export class AddPlansUsagePaymentsTables1761778811917 implements MigrationInterf
         await queryRunner.query(`ALTER TABLE "payment" ADD CONSTRAINT "FK_b046318e0b341a7f72110b75857" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE "payment" ADD CONSTRAINT "FK_fb6e13226928c7ddcf2e1bf6160" FOREIGN KEY ("planId") REFERENCES "plan"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE "users" ADD CONSTRAINT "FK_56f2aa669ddbe83eab8a25898b2" FOREIGN KEY ("planId") REFERENCES "plan"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
+
+        // Insert default Free plan
+        await queryRunner.query(`INSERT INTO "plan" ("id", "name", "otpLimit", "smtpLimit", "templateLimit", "apiKeyLimit", "price", "currency", "isDefault", "createdAt", "updatedAt") VALUES ('550e8400-e29b-41d4-a716-446655440000', 'Free', 100, 10, 5, 3, 0, 'USD', true, now(), now())`);
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
