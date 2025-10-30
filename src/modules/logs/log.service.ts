@@ -94,8 +94,8 @@ export class LogService {
       [userId],
     );
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-    const otpLimit = userPlan?.otpLimit || 100; // Default to 100 if no plan found
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unnecessary-type-assertion
+    const otpLimit = (userPlan as any)?.otpLimit || 100; // Default to 100 if no plan found
 
     return {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access

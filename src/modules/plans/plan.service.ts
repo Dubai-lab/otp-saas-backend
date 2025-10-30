@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 import {
   Injectable,
   NotFoundException,
@@ -114,7 +115,7 @@ export class PlanService {
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     if (user && (user as any).plan) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       return (user as any).plan;
     }
 
