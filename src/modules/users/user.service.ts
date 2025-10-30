@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -111,7 +112,7 @@ export class UsersService {
 
     if (!defaultPlan) {
       console.log('No default plan found, skipping user plan assignment');
-      return;
+      return { message: 'No default plan found' };
     }
 
     // Find all users without a valid plan (planId is null, 'current', or invalid)
@@ -123,7 +124,7 @@ export class UsersService {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     if (usersWithoutValidPlan.length === 0) {
       console.log('All users already have valid plans assigned');
-      return;
+      return { message: 'All users already have valid plans assigned' };
     }
 
     // Assign default plan to users without a valid plan
@@ -131,7 +132,7 @@ export class UsersService {
       `
       UPDATE "user" SET "planId" = ? WHERE "planId" IS NULL OR "planId" = 'current' OR "planId" NOT IN (SELECT id FROM plan)
     `,
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
       [(defaultPlan as any).id],
     );
 
@@ -140,5 +141,10 @@ export class UsersService {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       `Assigned default plan to ${usersWithoutValidPlan.length} users`,
     );
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    return {
+      message: `Default plan assigned to ${usersWithoutValidPlan.length} existing users`,
+    };
   }
 }
